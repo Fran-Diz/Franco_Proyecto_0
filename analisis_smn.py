@@ -65,15 +65,22 @@ def leer_observaciones(ruta: str) -> dict:
 
     return observaciones
 
+def cantidad_ciudades(observaciones: dict) -> int:
+    """Devuelve la cantidad total de ciudades leídas."""
+    return len(observaciones)
+
+
+def cantidad_ciudades_completas(observaciones: dict) -> int:
+    """Devuelve la cantidad de ciudades cuya sensación térmica se calcula."""
+    contador = 0
+    for datos in observaciones.values():
+        if datos["sensacion_termica"] != "No se calcula":
+            contador += 1
+    return contador
+
 
 if __name__ == "__main__":
     observaciones = leer_observaciones("datos/observaciones_smn.txt")
-    print(observaciones["Bahía Blanca"])
-    print(len(observaciones))
-    
-    print("\nPruebas aisladas de separar_viento:")
-    print(separar_viento("Oeste  7"))
-    print(separar_viento("Calma"))
-    print(separar_viento("Direcciones Variables  11"))
-
+    print(cantidad_ciudades(observaciones))
+    print(cantidad_ciudades_completas(observaciones))
 
