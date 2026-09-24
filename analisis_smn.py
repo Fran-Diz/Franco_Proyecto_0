@@ -231,6 +231,32 @@ def ciudades_extremo(observaciones: dict, campo: str, maximo: bool = True) -> li
 
     return ciudades
 
+def horarios_reportados(observaciones: dict) -> list:
+    """Devuelve la lista de horarios "HH:MM" a los que reportaron las estaciones,
+    sin repetir y ordenados de menor a mayor."""
+    horarios = []
+
+    for datos in observaciones.values():
+        hora = datos["fecha_y_hora"].hour
+        minuto = datos["fecha_y_hora"].minute
+
+        # agrego un 0 adelante si tiene un solo dígito (8 -> "08")
+        texto_hora = str(hora)
+        if hora < 10:
+            texto_hora = "0" + texto_hora
+
+        texto_minuto = str(minuto)
+        if minuto < 10:
+            texto_minuto = "0" + texto_minuto
+
+        horario = texto_hora + ":" + texto_minuto
+
+        if horario not in horarios:  # para no repetir
+            horarios.append(horario)
+
+    horarios.sort()
+    return horarios
+
 
 def mostrar_resumen(observaciones: dict, lineas_invalidas: int, ausentes: dict) -> None:
     """Imprime por pantalla el resumen con todas las características calculadas. Usar n=5"""
@@ -321,9 +347,6 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print(f"Error: no se encontró el archivo '{ruta}'.")
         sys.exit(1)
-    except OSError:
-        print(f"Error: no se pudo leer '{ruta}' (¿es una carpeta o no hay permisos?).")
-        sys.exit(1)
 
     # el archivo abrió bien pero no había ninguna observación válida
     if not observaciones:
@@ -333,5 +356,7 @@ if __name__ == "__main__":
             print(f"Error: '{ruta}' no tiene observaciones válidas "
                   f"({lineas_invalidas} líneas inválidas).")
         sys.exit(1)
+
+    print(f"• Horarios reportados: {', '.join(horarios_reportados(observaciones))}")
 
     mostrar_resumen(observaciones, lineas_invalidas, ausentes)
