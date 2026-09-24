@@ -11,8 +11,12 @@ def separar_viento(campo_viento: str) -> tuple:
     """Convierte un campo de viento como 'Norte  3' en (direccion, velocidad).
     Contempla el caso 'Calma', que se representa como velocidad 0 (no como
     dato faltante, porque calma es información real sobre el viento)."""
-
+    
     partes = campo_viento.strip().split()
+
+    # campo de viento vacío: no hay dirección ni velocidad
+    if len(partes) == 0:
+        return ("", "")
 
     # caso "Calma", no hay velocidad
     if len(partes) == 1:
