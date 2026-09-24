@@ -185,6 +185,36 @@ def campos_ausentes(ruta: str) -> dict:
 
     return ausentes
 
+
+def ciudades_extremo(observaciones: dict, campo: str, maximo: bool = True) -> list:
+    """Devuelve la lista de ciudades con el valor máximo (o mínimo si maximo=False)
+    de 'campo'. Si hay empate devuelve todas. Ignora valores no numéricos.
+    Reutilizable para temperatura y velocidad de viento."""
+    valor_extremo = None
+    ciudades = []
+
+    for ciudad, datos in observaciones.items():
+        try:
+            valor = float(datos[campo])
+        except (ValueError, TypeError):
+            continue
+
+        if valor_extremo is None:
+            es_nuevo_extremo = True
+        elif maximo:
+            es_nuevo_extremo = valor > valor_extremo
+        else:
+            es_nuevo_extremo = valor < valor_extremo
+
+        if es_nuevo_extremo:
+            valor_extremo = valor
+            ciudades = [ciudad]
+        elif valor == valor_extremo:
+            ciudades.append(ciudad)
+
+    return ciudades
+
+
 def mostrar_resumen(observaciones: dict, lineas_invalidas: int) -> None:
     """Imprime por pantalla el resumen con todas las características calculadas. Usar n=5"""
     n = 5
@@ -223,4 +253,5 @@ if __name__ == "__main__":
     ruta = "datos/observaciones_smn.txt"
     observaciones, lineas_invalidas = leer_observaciones(ruta)
     mostrar_resumen(observaciones, lineas_invalidas)
+    
 
