@@ -113,15 +113,17 @@ def cantidad_ciudades(observaciones: dict) -> int:
 
 
 def cantidad_ciudades_completas(observaciones: dict) -> int:
-    """Devuelve la cantidad de ciudades cuya sensación térmica se calcula.
-    velocidad_viento en 0 (caso 'Calma') no cuenta como dato faltante,
-    porque es información real y no un valor sin calcular."""
-    contador = 0
-    for datos in observaciones.values():
-        if datos["sensacion_termica"] != "No se calcula":
-            contador += 1
-    return contador
+    """Devuelve la cantidad de ciudades sin ningún dato faltante.
+    velocidad_viento en 0 (caso 'Calma') no cuenta como faltante,
+    porque es información real."""
+    incompletas = []
 
+    for ciudades in datos_faltantes_por_campo(observaciones).values():
+        for ciudad in ciudades:
+            if ciudad not in incompletas:
+                incompletas.append(ciudad)
+
+    return len(observaciones) - len(incompletas)
 
 def top_n_ciudades(observaciones: dict, campo: str, n: int, descendente: bool = True) -> list:
     """Devuelve las n (por parámetro) ciudades ordenadas según 'campo', de mayor a menor
@@ -172,7 +174,7 @@ def campos_ausentes(ruta: str) -> dict:
         for numero_linea, linea in enumerate(archivo, start=1):
             linea = linea.strip()
 
-            # una línea en blanco no es una fila con datos, no reporto nada
+            # una línea en blanco no es una fila con datos, no reporta nada
             if linea == "":
                 continue
 
