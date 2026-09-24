@@ -1,5 +1,10 @@
 from datetime import datetime
 
+COLUMNAS_ESPERADAS = [
+    "ciudad", "fecha", "hora", "condicion", "visibilidad",
+    "temperatura", "sensacion_termica", "humedad", "viento", "presion"
+]
+
 
 def separar_viento(campo_viento: str) -> tuple:
     """Convierte un campo de viento como 'Norte  3' en (direccion, velocidad).
@@ -8,7 +13,7 @@ def separar_viento(campo_viento: str) -> tuple:
 
     partes = campo_viento.strip().split()
 
-    # Si solo hay una palabra (ej. "Calma")
+    # Si solo hay una palabra 
     if len(partes) == 1:
         return (partes[0], 0)
 
@@ -156,9 +161,29 @@ def datos_faltantes_por_campo(observaciones: dict) -> dict:
 
     return faltantes
 
+def campos_ausentes(ruta: str) -> dict:
+    """Detecta qué columnas esperadas no están presentes en cada línea del archivo.
+    Devuelve {numero_de_linea: [columnas ausentes]}, solo para las líneas a las
+    que les falta algo. Se asume que las columnas que faltan son las últimas,
+    porque el archivo tiene un orden fijo separado por ';'."""
+    ausentes = {}
 
+    with open(ruta, encoding="latin-1") as archivo:
+        for numero_linea, linea in enumerate(archivo, start=1):
+            linea = linea.strip()
 
+            # una línea en blanco no es una fila con datos, no reporto nada
+            if linea == "":
+                continue
 
+            campos = linea.split(";")
+            cantidad = len(campos)
+
+            # llegaron las primeras 'cantidad' columnas, faltan las de ahí en adelante
+            if cantidad < len(COLUMNAS_ESPERADAS):
+                ausentes[numero_linea] = COLUMNAS_ESPERADAS[cantidad:]
+
+    return ausentes
 
 def mostrar_resumen(observaciones: dict, lineas_invalidas: int) -> None:
     """Imprime por pantalla el resumen con todas las características calculadas. Usar n=5"""
@@ -195,7 +220,7 @@ def mostrar_resumen(observaciones: dict, lineas_invalidas: int) -> None:
 
 
 if __name__ == "__main__":
-    observaciones, lineas_invalidas = leer_observaciones("datos/observaciones_smn.txt")
+    ruta = "datos/observaciones_smn.txt"
+    observaciones, lineas_invalidas = leer_observaciones(ruta)
     mostrar_resumen(observaciones, lineas_invalidas)
-    
 
