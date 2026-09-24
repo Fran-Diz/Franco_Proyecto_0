@@ -142,6 +142,24 @@ def top_n_ciudades(observaciones: dict, campo: str, n: int, descendente: bool = 
     return top_n
 
 
+def datos_faltantes_por_campo(observaciones: dict) -> dict:
+    """Devuelve un diccionario {campo: [ciudades donde falta ese campo]}."""
+    valores_faltantes = ["No se calcula"]
+    faltantes = {}
+
+    for ciudad, datos in observaciones.items():
+        for campo, valor in datos.items():
+            if valor in valores_faltantes:
+                if campo not in faltantes:
+                    faltantes[campo] = []
+                faltantes[campo].append(ciudad)
+
+    return faltantes
+
+
+
+
+
 def mostrar_resumen(observaciones: dict, lineas_invalidas: int) -> None:
     """Imprime por pantalla el resumen con todas las características calculadas. Usar n=5"""
     n = 5
@@ -179,3 +197,5 @@ def mostrar_resumen(observaciones: dict, lineas_invalidas: int) -> None:
 if __name__ == "__main__":
     observaciones, lineas_invalidas = leer_observaciones("datos/observaciones_smn.txt")
     mostrar_resumen(observaciones, lineas_invalidas)
+    
+
