@@ -6,6 +6,14 @@ Programa que lee el archivo de observaciones actuales del Servicio Meteorológic
 Nacional, guarda los datos en un diccionario (una clave por ciudad) y muestra un
 resumen con estadísticas.
 
+## Cómo conseguir el archivo
+
+1. Entrar a https://www.smn.gob.ar/descarga-de-datos
+2. Bajar el `.rar` de observaciones actuales y descomprimirlo.
+3. Copiar el `.txt` a la carpeta `datos/` con el nombre `observaciones_smn.txt`.
+
+Los datos son en vivo, así que cada vez que se descarga da algo distinto.
+
 
 ## Cómo ejecutarlo
 

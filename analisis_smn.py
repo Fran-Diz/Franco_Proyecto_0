@@ -1,5 +1,4 @@
 import sys
-import json
 from datetime import datetime
 
 COLUMNAS_ESPERADAS = [
