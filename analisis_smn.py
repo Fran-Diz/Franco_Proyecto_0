@@ -1,4 +1,5 @@
 import sys
+import json
 from datetime import datetime
 
 COLUMNAS_ESPERADAS = [
@@ -261,75 +262,74 @@ def horarios_reportados(observaciones: dict) -> list:
 def mostrar_resumen(observaciones: dict, lineas_invalidas: int, ausentes: dict) -> None:
     """Imprime por pantalla el resumen con todas las características calculadas. Usar n=5"""
     n = 5
-    print("=" * 50)
+    
     print("      RESUMEN DE OBSERVACIONES METEOROLÓGICAS (SMN)")
-    print("=" * 50)
 
-    print(f"• Cantidad total de ciudades leídas: {cantidad_ciudades(observaciones)}")
-    print(f"• Ciudades con datos completos: {cantidad_ciudades_completas(observaciones)}")
-    print(f"• Líneas inválidas descartadas: {lineas_invalidas}")
+    print(f" Cantidad total de ciudades leídas: {cantidad_ciudades(observaciones)}")
+    print(f" Ciudades con datos completos: {cantidad_ciudades_completas(observaciones)}")
+    print(f" Líneas inválidas descartadas: {lineas_invalidas}")
+    print(f" Horarios reportados: {', '.join(horarios_reportados(observaciones))}")
 
     if ausentes:
-        print(f"• Líneas con columnas faltantes: {len(ausentes)}")
+        print(f" Líneas con columnas faltantes: {len(ausentes)}")
     else:
-        print("• No se detectaron líneas con columnas faltantes.")
+        print(" No se detectaron líneas con columnas faltantes.")
 
-    print("\n--- Extremos ---")
+    print("\n Extremos ")
 
     ciudades = ciudades_extremo(observaciones, "temperatura", True)
     if ciudades:
         valor = observaciones[ciudades[0]]["temperatura"]
-        print(f"  -> Temperatura máxima: {valor} °C ({', '.join(ciudades)})")
+        print(f"  Temperatura máxima: {valor} °C ({', '.join(ciudades)})")
 
     ciudades = ciudades_extremo(observaciones, "temperatura", False)
     if ciudades:
         valor = observaciones[ciudades[0]]["temperatura"]
-        print(f"  -> Temperatura mínima: {valor} °C ({', '.join(ciudades)})")
+        print(f"  Temperatura mínima: {valor} °C ({', '.join(ciudades)})")
 
     ciudades = ciudades_extremo(observaciones, "velocidad_viento", True)
     if ciudades:
         valor = observaciones[ciudades[0]]["velocidad_viento"]
-        print(f"  -> Viento máximo: {valor} km/h ({', '.join(ciudades)})")
+        print(f"  Viento máximo: {valor} km/h ({', '.join(ciudades)})")
 
     ciudades = ciudades_extremo(observaciones, "velocidad_viento", False)
     if ciudades:
         valor = observaciones[ciudades[0]]["velocidad_viento"]
-        print(f"  -> Viento mínimo: {valor} km/h ({', '.join(ciudades)})")
+        print(f" Viento mínimo: {valor} km/h ({', '.join(ciudades)})")
 
-    print("\n--- Datos faltantes por campo ---")
+    print("\n Datos faltantes por campo ")
     faltantes = datos_faltantes_por_campo(observaciones)
     if not faltantes:
         print("  Ninguno")
     for campo, ciudades in faltantes.items():
-        print(f"  -> {campo}: {len(ciudades)} ({', '.join(ciudades)})")
+        print(f"   {campo}: {len(ciudades)} ({', '.join(ciudades)})")
 
     if ausentes:
-        print("\n--- Columnas ausentes por línea ---")
+        print("\n Columnas ausentes por línea ")
         for numero_linea, columnas in ausentes.items():
-            print(f"  -> Línea {numero_linea}: faltan {', '.join(columnas)}")
+            print(f"   Línea {numero_linea}: faltan {', '.join(columnas)}")
 
-    print(f"\n--- Top {n} Ciudades más cálidas ---")
+    print(f"\n Top {n} Ciudades más cálidas ")
     for ciudad in top_n_ciudades(observaciones, "temperatura", n, descendente=True):
         temp = observaciones[ciudad]["temperatura"]
-        print(f"  -> {ciudad}: {temp} °C")
+        print(f"   {ciudad}: {temp} °C")
 
-    print(f"\n--- Top {n} Ciudades más frías ---")
+    print(f"\n Top {n} Ciudades más frías ")
     for ciudad in top_n_ciudades(observaciones, "temperatura", n, descendente=False):
         temp = observaciones[ciudad]["temperatura"]
-        print(f"  -> {ciudad}: {temp} °C")
+        print(f"   {ciudad}: {temp} °C")
 
-    print(f"\n--- Top {n} Ciudades con más viento ---")
+    print(f"\n Top {n} Ciudades con más viento ")
     for ciudad in top_n_ciudades(observaciones, "velocidad_viento", n, descendente=True):
         vel = observaciones[ciudad]["velocidad_viento"]
         dir_v = observaciones[ciudad]["direccion_viento"]
-        print(f"  -> {ciudad}: {vel} km/h ({dir_v})")
+        print(f"   {ciudad}: {vel} km/h ({dir_v})")
 
-    print(f"\n--- Top {n} Ciudades con menos viento ---")
+    print(f"\n Top {n} Ciudades con menos viento ")
     for ciudad in top_n_ciudades(observaciones, "velocidad_viento", n, descendente=False):
         vel = observaciones[ciudad]["velocidad_viento"]
         dir_v = observaciones[ciudad]["direccion_viento"]
-        print(f"  -> {ciudad}: {vel} km/h ({dir_v})")
-    print("=" * 50)
+        print(f"   {ciudad}: {vel} km/h ({dir_v})")
 
 
 if __name__ == "__main__":
@@ -357,6 +357,5 @@ if __name__ == "__main__":
                   f"({lineas_invalidas} líneas inválidas).")
         sys.exit(1)
 
-    print(f"• Horarios reportados: {', '.join(horarios_reportados(observaciones))}")
 
     mostrar_resumen(observaciones, lineas_invalidas, ausentes)
