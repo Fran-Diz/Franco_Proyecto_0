@@ -1,5 +1,6 @@
-#Analisis del clima proyecto 0
-# Análisis de observaciones del SMN
+# Analisis del clima proyecto 0
+
+ Proyecto 0 - Franco Diz Díaz
 
 Programa que lee el archivo de observaciones actuales del Servicio Meteorológico
 Nacional, guarda los datos en un diccionario (una clave por ciudad) y muestra un
@@ -36,19 +37,3 @@ Algunas decisiones que tomé:
   que no es número se descartan y se cuentan como inválidas.
 - `campos_ausentes` vuelve a leer el archivo porque esas líneas ya no están en el
   diccionario.
-
-## Ejemplo de salida
-
-```text
-      RESUMEN DE OBSERVACIONES METEOROLÓGICAS 
-- Cantidad total de ciudades leídas: 121
-- Ciudades con datos completos: 25
-- Líneas inválidas descartadas: 0
-- Horarios reportados: 09:00, 10:00, 11:00, 12:00, 13:00, 15:00
-- No se detectaron líneas con columnas faltantes.
-
---- Top 5 Ciudades más cálidas ---
-  -> Rivadavia: 28.0 °C
-  -> Orán: 27.4 °C
-  ...
-```
