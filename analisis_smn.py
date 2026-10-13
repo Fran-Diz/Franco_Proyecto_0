@@ -140,8 +140,7 @@ def procesar_archivo_txt(ruta: str):
     observaciones_json = {}
     for ciudad, datos in observaciones.items():
         datos_copia = datos.copy()
-        if isinstance(datos_copia.get("fecha_y_hora"), datetime):
-            datos_copia["fecha_y_hora"] = datos_copia["fecha_y_hora"].isoformat(timespec='minutes')
+        datos_copia["fecha_y_hora"] = datos_copia["fecha_y_hora"].isoformat(timespec='minutes')
         observaciones_json[ciudad] = datos_copia
 
     # Verificar y crear directorio obs_json si no existe
@@ -163,6 +162,23 @@ def procesar_archivo_txt(ruta: str):
 
     total = len(observaciones_json)
     informadas = cantidad_ciudades_completas(observaciones)
+    print(f"Ciudades contenidas: {total}\nCiudades informadas: {informadas}")
+
+def procesar_archivo_json(ruta: str):
+    """Procesa un archivo .json existente."""
+    print(f"leyendo archivo JSON: {ruta}...")
+    try:
+        with open(ruta, "r", encoding="utf-8") as f:
+            datos_json = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: no se encontró el archivo '{ruta}'.")
+        sys.exit(1)
+    except ValueError:
+        print(f"Error: '{ruta}' no es un JSON válido o no está en utf-8.")
+        sys.exit(1)
+
+    total = len(datos_json)
+    informadas = cantidad_ciudades_completas(datos_json)
     print(f"Ciudades contenidas: {total}\nCiudades informadas: {informadas}")
 
 def cantidad_ciudades(observaciones: dict) -> int:
