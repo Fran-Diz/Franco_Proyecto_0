@@ -127,6 +127,44 @@ def detectar_y_leer_txt(ruta: str) -> tuple:
     print(f"codificación detectada: {encoding_usado}, leyendo observaciones...")
     return leer_observaciones(ruta, encoding_usado)
 
+def procesar_archivo_txt(ruta: str):
+    """Procesa el archivo .txt, lo convierte a JSON y lo guarda en obs_json/."""
+    print("archivo del SMN, convirtiendo a json...")
+    observaciones, lineas_invalidas = detectar_y_leer_txt(ruta)
+
+    if not observaciones:
+        print(f"Error: '{ruta}' no tiene observaciones válidas.")
+        sys.exit(1)
+
+    # Convertir datetime a ISO 8601 sin segundos
+    observaciones_json = {}
+    for ciudad, datos in observaciones.items():
+        datos_copia = datos.copy()
+        if isinstance(datos_copia.get("fecha_y_hora"), datetime):
+            datos_copia["fecha_y_hora"] = datos_copia["fecha_y_hora"].isoformat(timespec='minutes')
+        observaciones_json[ciudad] = datos_copia
+
+    # Verificar y crear directorio obs_json si no existe
+    dir_destino = Path("obs_json")
+    if not dir_destino.exists():
+        print("el directorio obs_json no existe, creándolo...")
+        dir_destino.mkdir(parents=True, exist_ok=True)
+    else:
+        print("el directorio obs_json ya existe.")
+
+    # Guardar archivo .json
+    nombre_json = Path(ruta).stem + ".json"
+    ruta_json = dir_destino / nombre_json
+    
+    print(f"guardando archivo en {ruta_json}...")
+    with open(ruta_json, "w", encoding="utf-8") as f:
+        json.dump(observaciones_json, f, ensure_ascii=False, indent=4)
+    print("conversión completada.")
+
+    total = len(observaciones_json)
+    informadas = cantidad_ciudades_completas(observaciones)
+    print(f"Ciudades contenidas: {total}\nCiudades informadas: {informadas}")
+
 def cantidad_ciudades(observaciones: dict) -> int:
     """Devuelve la cantidad total de ciudades leídas."""
     return len(observaciones)
