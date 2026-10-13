@@ -115,8 +115,10 @@ def leer_observaciones(ruta: str, encoding: str = "latin-1") -> tuple:
 
     return observaciones, lineas_invalidas
 
+
 def detectar_y_leer_txt(ruta: str) -> tuple:
-    """Detecta si el archivo .txt está en utf-8 o latin-1 y lee las observaciones."""
+    """Detecta si el archivo .txt está en utf-8 o latin-1 y lee las observaciones.
+    Devuelve (observaciones, lineas_invalidas, encoding_usado)."""
     print("archivo del SMN, detectando codificación...")
     encoding_usado = "utf-8"
     try:
@@ -124,27 +126,31 @@ def detectar_y_leer_txt(ruta: str) -> tuple:
             archivo.read()
     except UnicodeDecodeError:
         encoding_usado = "latin-1"
-    
-    print(f"codificación detectada: {encoding_usado}, leyendo observaciones...")
-    return leer_observaciones(ruta, encoding_usado)
 
-def procesar_archivo_txt(ruta: str):
-    """Procesa el archivo .txt, lo convierte a JSON y lo guarda en obs_json/."""
+    print(f"codificación detectada: {encoding_usado}, leyendo observaciones...")
+    observaciones, lineas_invalidas = leer_observaciones(ruta, encoding_usado)
+    return observaciones, lineas_invalidas, encoding_usado
+
+
+def procesar_archivo_txt(ruta: str) -> tuple:
+    """Procesa el archivo .txt, lo convierte a JSON y lo guarda en obs_json/.
+    Devuelve (observaciones, lineas_invalidas, encoding_usado) para poder
+    mostrar el resumen después."""
     print("archivo del SMN, convirtiendo a json...")
-    observaciones, lineas_invalidas = detectar_y_leer_txt(ruta)
+    observaciones, lineas_invalidas, encoding_usado = detectar_y_leer_txt(ruta)
 
     if not observaciones:
         print(f"Error: '{ruta}' no tiene observaciones válidas.")
         sys.exit(1)
 
-    # Convertir datetime a ISO 8601 sin segundos
+    # convierto datetime a ISO 8601 sin segundos
     observaciones_json = {}
     for ciudad, datos in observaciones.items():
         datos_copia = datos.copy()
         datos_copia["fecha_y_hora"] = datos_copia["fecha_y_hora"].isoformat(timespec='minutes')
         observaciones_json[ciudad] = datos_copia
 
-    # Verificar y crear directorio obs_json si no existe
+    # verifico y creo el directorio obs_json si no existe
     dir_destino = Path("obs_json")
     if not dir_destino.exists():
         print("el directorio obs_json no existe, creándolo...")
@@ -152,10 +158,10 @@ def procesar_archivo_txt(ruta: str):
     else:
         print("el directorio obs_json ya existe.")
 
-    # Guardar archivo .json
+    # guardo el archivo .json
     nombre_json = Path(ruta).stem + ".json"
     ruta_json = dir_destino / nombre_json
-    
+
     print(f"guardando archivo en {ruta_json}...")
     with open(ruta_json, "w", encoding="utf-8") as f:
         json.dump(observaciones_json, f, ensure_ascii=False, indent=4)
@@ -164,6 +170,9 @@ def procesar_archivo_txt(ruta: str):
     total = len(observaciones_json)
     informadas = cantidad_ciudades_completas(observaciones)
     print(f"Ciudades contenidas: {total}\nCiudades informadas: {informadas}")
+
+    return observaciones, lineas_invalidas, encoding_usado
+
 
 def procesar_archivo_json(ruta: str):
     """Procesa un archivo .json existente."""
@@ -181,6 +190,7 @@ def procesar_archivo_json(ruta: str):
     total = len(datos_json)
     informadas = cantidad_ciudades_completas(datos_json)
     print(f"Ciudades contenidas: {total}\nCiudades informadas: {informadas}")
+
 
 def cantidad_ciudades(observaciones: dict) -> int:
     """Devuelve la cantidad total de ciudades leídas."""
@@ -245,7 +255,7 @@ def datos_faltantes_por_campo(observaciones: dict) -> dict:
     return faltantes
 
 
-def campos_ausentes(ruta: str) -> dict:
+def campos_ausentes(ruta: str, encoding: str = "latin-1") -> dict:
     """Detecta qué columnas esperadas no están presentes en cada línea del archivo.
     Devuelve {numero_de_linea: [columnas ausentes]}, solo para las líneas a las
     que les falta algo. Se asume que las columnas que faltan son las últimas,
@@ -254,7 +264,7 @@ def campos_ausentes(ruta: str) -> dict:
     # descarta estas líneas, entonces hay que leer el archivo de nuevo
     ausentes = {}
 
-    with open(ruta, encoding="latin-1") as archivo:
+    with open(ruta, encoding=encoding) as archivo:
         for numero_linea, linea in enumerate(archivo, start=1):
             linea = linea.strip()
 
@@ -299,6 +309,7 @@ def ciudades_extremo(observaciones: dict, campo: str, maximo: bool = True) -> li
             ciudades.append(ciudad)
 
     return ciudades
+
 
 def horarios_reportados(observaciones: dict) -> list:
     """Devuelve la lista de horarios "HH:MM" a los que reportaron las estaciones,
@@ -437,7 +448,11 @@ def main():
         sys.exit(1)
 
     if extension == ".txt":
-        procesar_archivo_txt(ruta)
+        # convierto a json y después muestro el resumen de siempre
+        observaciones, lineas_invalidas, encoding_usado = procesar_archivo_txt(ruta)
+        ausentes = campos_ausentes(ruta, encoding_usado)
+        print()
+        mostrar_resumen(observaciones, lineas_invalidas, ausentes)
     elif extension == ".json":
         procesar_archivo_json(ruta)
     else:
