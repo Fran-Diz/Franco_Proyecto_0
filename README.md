@@ -3,8 +3,8 @@
  Proyecto 0 - Franco Diz Díaz
 
 Programa que lee el archivo de observaciones actuales del Servicio Meteorológico
-Nacional, guarda los datos en un diccionario (una clave por ciudad) y muestra un
-resumen con estadísticas.
+Nacional, guarda los datos en un diccionario (una clave por ciudad), lo convierte
+a JSON y muestra un resumen con estadísticas.
 
 ## Cómo conseguir el archivo
 
@@ -14,14 +14,29 @@ resumen con estadísticas.
 
 Los datos son en vivo, así que cada vez que se descarga da algo distinto.
 
-
 ## Cómo ejecutarlo
+
+El programa recibe un solo parámetro, la ruta del archivo, y hace cosas
+distintas según qué se le pase (en Linux se usa `python3`):
 
 ```bash
 python analisis_smn.py datos/observaciones_smn.txt
+python analisis_smn.py obs_json/observaciones_smn.json
+python analisis_smn.py
 ```
 
-Si no se pasa el archivo, no existe o está vacío, avisa con un mensaje y termina.
+- **Archivo `.txt` del SMN:** detecta si está en `utf-8` o `latin-1`, lo convierte
+  a JSON (con la fecha en formato ISO 8601 sin segundos) y lo guarda en
+  `obs_json/` con el mismo nombre (si la carpeta no existe, la crea). Va
+  imprimiendo una leyenda antes de cada paso, después la cantidad de ciudades
+  contenidas e informadas, y por último el resumen completo.
+- **Archivo `.json`:** imprime la cantidad de ciudades contenidas e informadas.
+- **Sin parámetros:** avisa e informa cuántos `.txt` hay en `datos/` y cuántos
+  `.json` hay en `obs_json/`.
+- **Más de un parámetro:** avisa y termina sin hacer nada más.
+
+Si el archivo no existe, no es `.txt` ni `.json`, o no tiene observaciones
+válidas, avisa con un mensaje y termina.
 
 ## Cómo funciona
 
@@ -33,25 +48,44 @@ Con eso arma un diccionario de diccionarios:
 {"Azul": {"fecha_y_hora": ..., "temperatura": 3.3, "velocidad_viento": 5, ...}}
 ```
 
-Después el resto de las funciones recorren ese diccionario para contar ciudades,
+`detectar_y_leer_txt` prueba abrir el archivo con `utf-8` y, si falla, usa
+`latin-1`. `procesar_archivo_txt` convierte el diccionario a JSON y lo guarda, y
+`procesar_archivo_json` lee un JSON ya guardado.
+
+Después el resto de las funciones recorren el diccionario para contar ciudades,
 buscar datos faltantes, sacar máximos y mínimos, armar los rankings y listar los
 horarios. `mostrar_resumen` solo imprime lo que devuelven.
 
 Algunas decisiones que tomé:
 
+- **Ciudades contenidas:** el total de ciudades del archivo.
+- **Ciudades informadas:** las que tienen todos sus datos completos (sin ningún
+  `No se calcula`).
 - `Calma` queda como dirección "Calma" y velocidad 0, porque es un dato real.
 - `No se calcula` en sensación térmica cuenta como dato faltante.
 - Las líneas con otra cantidad de campos, con fecha mal escrita o con temperatura
   que no es número se descartan y se cuentan como inválidas.
 - `campos_ausentes` vuelve a leer el archivo porque esas líneas ya no están en el
   diccionario.
+- La carpeta `obs_json/` se genera al correr el programa, por eso está en el
+  `.gitignore`.
 
 ## Ejemplo de salida por consola
 
 Corriendo `python analisis_smn.py datos/observaciones_smn.txt` con el archivo de
 ejemplo:
 
-RESUMEN DE OBSERVACIONES METEOROLÓGICAS (SMN)
+```
+archivo del SMN, convirtiendo a json...
+archivo del SMN, detectando codificación...
+codificación detectada: latin-1, leyendo observaciones...
+el directorio obs_json no existe, creándolo...
+guardando archivo en obs_json/observaciones_smn.json...
+conversión completada.
+Ciudades contenidas: 121
+Ciudades informadas: 25
+
+      RESUMEN DE OBSERVACIONES METEOROLÓGICAS (SMN)
  Cantidad total de ciudades leídas: 121
  Ciudades con datos completos: 25
  Líneas inválidas descartadas: 0
@@ -65,7 +99,7 @@ RESUMEN DE OBSERVACIONES METEOROLÓGICAS (SMN)
  Viento mínimo: 0 km/h (Bolívar, Mar del Plata, Olavarría, Pigué, Villa María Del Río Seco, Uspallata, Cipolletti, Metán, Rivadavia, Gobernador Gregores, Base Carlini)
 
  Datos faltantes por campo 
-   sensacion_termica: 96 (Azul, Bahía Blanca, Benito Juárez, Bolívar, Campo de Mayo, Coronel Suarez, Dolores, El Palomar, Ezeiza, Junín, La Plata, Las Flores, Mar del Plata, Mariano Moreno, Merlo, Morón, Nueve de Julio, Olavarría, Pehuajó, Pigué, Punta Indio B.A., San Fernando, Tandil, Trenque Lauquen, Tres Arroyos, Villa Gesell, Aeroparque Buenos Aires, Buenos Aires, Catamarca, Tinogasta, Puerto Madryn, Trelew, Córdoba, Córdoba Observatorio, Esc. Aviación Militar, Laboulaye, Marcos Juárez, Pilar Obs., Río Cuarto, Villa Dolores, Villa María Del Río Seco, Corrientes, Ituzaingó, Mercedes, Monte Caseros, Paso De Los Libres, Concordia, Gualeguaychú, Paraná, Formosa, La Quiaca, Jujuy, Jujuy Universidad Nacional, General Pico, Victorica, Santa Rosa, Chamical, Chepes, Chilecito, La Rioja, Malargue, Mendoza, Mendoza Observatorio, San Martín (Mza), San Rafael, Uspallata, Bernardo De Irigoyen, Iguazú, Oberá, Posadas, Neuquén, Cipolletti, El Bolsón, Maquinchao, Río Colorado, Viedma, Metán, Salta, Jachal, San Juan, San Luis, Santa Rosa del Conlara, Villa Reynolds, Gobernador Gregores, Ceres, Rafaela, Reconquista, Rosario, Santa Fe, Sunchales, Venado Tuerto, Termas de Rio Hondo, Santiago del Estero, Tucumán, Base Esperanza, Base Carlini)
+   sensacion_termica: 96 (Azul, Bahía Blanca, Benito Juárez, ...)
 
  Top 5 Ciudades más cálidas 
    Rivadavia: 28.0 °C
@@ -94,3 +128,12 @@ RESUMEN DE OBSERVACIONES METEOROLÓGICAS (SMN)
    Olavarría: 0 km/h (Calma)
    Pigué: 0 km/h (Calma)
    Villa María Del Río Seco: 0 km/h (Calma)
+```
+
+Con un `.json` la salida es solo esto:
+
+```
+leyendo archivo JSON: obs_json/observaciones_smn.json...
+Ciudades contenidas: 121
+Ciudades informadas: 25
+```
