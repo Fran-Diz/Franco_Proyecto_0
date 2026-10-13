@@ -1,5 +1,7 @@
 import sys
 from datetime import datetime
+import json
+from pathlib import Path
 
 COLUMNAS_ESPERADAS = [
     "ciudad", "fecha", "hora", "condicion", "visibilidad",
@@ -37,7 +39,7 @@ def separar_viento(campo_viento: str) -> tuple:
     return (direccion, velocidad)
 
 
-def leer_observaciones(ruta: str) -> tuple:
+def leer_observaciones(ruta: str, encoding: str = "latin-1") -> tuple:
     """Lee el archivo de observaciones del SMN y devuelve una tupla
     (observaciones, lineas_invalidas), donde observaciones es un diccionario
     {ciudad: datos} con los nombres de ciudad limpios, fecha_y_hora unificada
@@ -56,7 +58,7 @@ def leer_observaciones(ruta: str) -> tuple:
     observaciones = {}
     lineas_invalidas = 0
 
-    with open(ruta, encoding="latin-1") as archivo:
+    with open(ruta, encoding=encoding) as archivo:
         for linea in archivo:
             campos = linea.strip().split(";")
 
@@ -112,6 +114,18 @@ def leer_observaciones(ruta: str) -> tuple:
 
     return observaciones, lineas_invalidas
 
+def detectar_y_leer_txt(ruta: str) -> tuple:
+    """Detecta si el archivo .txt está en utf-8 o latin-1 y lee las observaciones."""
+    print("archivo del SMN, detectando codificación...")
+    encoding_usado = "utf-8"
+    try:
+        with open(ruta, encoding="utf-8") as archivo:
+            archivo.read()
+    except UnicodeDecodeError:
+        encoding_usado = "latin-1"
+    
+    print(f"codificación detectada: {encoding_usado}, leyendo observaciones...")
+    return leer_observaciones(ruta, encoding_usado)
 
 def cantidad_ciudades(observaciones: dict) -> int:
     """Devuelve la cantidad total de ciudades leídas."""
