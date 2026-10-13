@@ -1,4 +1,5 @@
 import sys
+import os
 from datetime import datetime
 import json
 from pathlib import Path
@@ -399,30 +400,50 @@ def mostrar_resumen(observaciones: dict, lineas_invalidas: int, ausentes: dict) 
         print(f"   {ciudad}: {vel} km/h ({dir_v})")
 
 
-if __name__ == "__main__":
-    # si no me pasan la ruta como argumento, aviso y corto
-    if len(sys.argv) != 2:
+def contar_archivos(carpeta: str, extension: str) -> int:
+    """Cuenta los archivos de 'carpeta' que terminan con 'extension'.
+    Si la carpeta no existe, devuelve 0."""
+    if not os.path.exists(carpeta):
+        return 0
+
+    cantidad = 0
+    for nombre in os.listdir(carpeta):
+        if nombre.lower().endswith(extension):
+            cantidad += 1
+    return cantidad
+
+
+def main():
+    # más de un parámetro: aviso y termino sin hacer nada más
+    if len(sys.argv) > 2:
+        print("Error: se pasó más de un parámetro.")
         print("Uso: python analisis_smn.py <ruta_del_archivo>")
-        print("Ejemplo: python analisis_smn.py datos/observaciones_smn.txt")
         sys.exit(1)
 
-    ruta = sys.argv[1]
+    # ningún parámetro: aviso e informo cuántos archivos hay en cada carpeta
+    if len(sys.argv) == 1:
+        print("Aviso: no se pasó ningún archivo.")
+        print("Uso: python analisis_smn.py <ruta_del_archivo>")
+        print(f"Archivos .txt en datos/: {contar_archivos('datos', '.txt')}")
+        print(f"Archivos .json en obs_json/: {contar_archivos('obs_json', '.json')}")
+        return
 
-    try:
-        observaciones, lineas_invalidas = leer_observaciones(ruta)
-        ausentes = campos_ausentes(ruta)
-    except FileNotFoundError:
+    # un solo parámetro: decido según la extensión
+    ruta = sys.argv[1]
+    extension = os.path.splitext(ruta)[1].lower()
+
+    if not os.path.exists(ruta):
         print(f"Error: no se encontró el archivo '{ruta}'.")
         sys.exit(1)
 
-    # el archivo abrió bien pero no había ninguna observación válida
-    if not observaciones:
-        if lineas_invalidas == 0:
-            print(f"Error: el archivo '{ruta}' está vacío.")
-        else:
-            print(f"Error: '{ruta}' no tiene observaciones válidas "
-                  f"({lineas_invalidas} líneas inválidas).")
+    if extension == ".txt":
+        procesar_archivo_txt(ruta)
+    elif extension == ".json":
+        procesar_archivo_json(ruta)
+    else:
+        print(f"Error: extensión no soportada ('{extension}'). Use un archivo .txt o .json.")
         sys.exit(1)
 
 
-    mostrar_resumen(observaciones, lineas_invalidas, ausentes)
+if __name__ == "__main__":
+    main()
