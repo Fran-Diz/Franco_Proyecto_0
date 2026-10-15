@@ -1,6 +1,6 @@
-# Analisis del clima proyecto 0
+# Analisis del clima proyecto 0.1
 
- Proyecto 0 - Franco Diz Díaz
+ Proyecto 0.1- Franco Diz Díaz
 
 Programa que lee el archivo de observaciones actuales del Servicio Meteorológico
 Nacional, guarda los datos en un diccionario (una clave por ciudad), lo convierte
